@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 
 #--------------------------------------------------------------------
 # Step 1: Load Dataset
@@ -35,12 +35,31 @@ coefficient = model.coef_[0]
 # Predict values for the test set
 sales_pred_test = model.predict(X_test)
 
-# Calculate the R-squared value
+# Calculate the R-squared value and Mean Squared Error
 r2 = r2_score(y_test, sales_pred_test)
+mse = mean_squared_error(y_test, sales_pred_test)
 
 #--------------------------------------------------------------------
 # Gradio App Functions
 #--------------------------------------------------------------------
+# Function to generate and save pair plot and correlation heatmap
+def generate_visualizations():
+    # Generate pair plot
+    sns.pairplot(advert[['TV', 'Sales']])
+    pair_plot_path = "pair_plot.png"
+    plt.savefig(pair_plot_path)
+    plt.close()
+
+    # Generate correlation heatmap
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(advert[['TV', 'Sales']].corr(), annot=True, cmap="coolwarm", fmt=".2f")
+    plt.title("Correlation Heatmap")
+    heatmap_path = "correlation_heatmap.png"
+    plt.savefig(heatmap_path)
+    plt.close()
+
+    return pair_plot_path, heatmap_path
+
 # Function to make predictions and visualize results
 def predict_and_visualize(tv_budget):
     # Predict sales for the input TV advertising budget
@@ -70,7 +89,11 @@ def predict_and_visualize(tv_budget):
     plt.savefig(plot_path)
     plt.close()
 
-    return predicted_sales, r2, plot_path
+    # Explain model performance
+    mse_comment = "Good Fit" if mse <= 10 else "Poor Fit"
+    r2_comment = "Excellent Fit" if r2 > 0.9 else "Acceptable Fit" if r2 > 0.7 else "Poor Fit"
+
+    return predicted_sales, f"{r2:.2f} ({r2_comment})", f"{mse:.2f} ({mse_comment})", plot_path
 
 #--------------------------------------------------------------------
 # Gradio Interface
@@ -79,24 +102,64 @@ def predict_and_visualize(tv_budget):
 with gr.Blocks() as demo:
     gr.Markdown("# TV Advertising vs Sales - Linear Regression")
     gr.Markdown("""
-    This app allows you to explore the relationship between TV advertising costs and sales.
-    Adjust the TV advertising budget below to see the predicted sales and visualize the results.
+    ## About the Dataset:
+    This dataset consists of sales data for a product across 200 different markets. It includes the **TV advertising budget** and the corresponding **sales** for each market.
+
+    - **TV Advertising Budget (TV)**: Advertising budget spent on TV (in $).
+    - **Sales**: The number of units sold in each market (target variable).
+
+    **Dataset Summary**:
+    - **200 rows** (markets) and **2 variables**:
+        - TV: Advertising budget for TV (numeric, feature).
+        - Sales: Product sales (numeric, target variable).
     """)
-    
+
+    gr.Markdown("""
+    ## Visualize Relationships:
+    Below are visualizations to better understand the dataset:
+    - **Pair Plot**: Shows the relationship between TV advertising budgets and sales.
+    - **Correlation Heatmap**: Displays the correlation coefficient between TV and sales.
+    """)
+
+    pair_plot_output = gr.Image(label="Pair Plot")
+    heatmap_output = gr.Image(label="Correlation Heatmap")
+    generate_visualizations_button = gr.Button("Generate Visualizations")
+    generate_visualizations_button.click(
+        generate_visualizations, 
+        inputs=[], 
+        outputs=[pair_plot_output, heatmap_output]
+    )
+
+    gr.Markdown("""
+    ## How to Use This App:
+    1. Adjust the **TV advertising budget** using the slider below.
+    2. The app will predict the **sales** and display performance metrics:
+        - **R² Score (R-squared)**: Measures how well the model fits the data. Higher values (closer to 1) indicate a better fit.
+        - **Mean Squared Error (MSE)**: Measures the average squared difference between actual and predicted values. Lower values (close to 0) indicate a better fit.
+
+    ### Performance Guidelines:
+    - **R² Score:**
+        - > 0.9: Excellent Fit
+        - 0.7 - 0.9: Acceptable Fit
+        - ≤ 0.7: Poor Fit
+    - **MSE:**
+        - ≤ 10: Good Fit
+        - > 100: Poor Fit
+    """)
+
     with gr.Row():
         tv_budget_input = gr.Slider(label="TV Advertising Budget ($)", minimum=0, maximum=500, step=10, value=100)
     
     with gr.Row():
         predicted_sales_output = gr.Textbox(label="Predicted Sales (units)", interactive=False)
-        r2_output = gr.Textbox(label="R-squared Value", value=f"{r2:.2f}", interactive=False)
+        r2_output = gr.Textbox(label="R-squared Value", interactive=False)
+        mse_output = gr.Textbox(label="Mean Squared Error (MSE)", interactive=False)
     
     plot_output = gr.Image(label="Regression Plot")
 
     # Button to make predictions and visualize results
     predict_button = gr.Button("Predict and Visualize")
-
-    # Connect the function to Gradio inputs and outputs
-    predict_button.click(predict_and_visualize, inputs=tv_budget_input, outputs=[predicted_sales_output, r2_output, plot_output])
+    predict_button.click(predict_and_visualize, inputs=tv_budget_input, outputs=[predicted_sales_output, r2_output, mse_output, plot_output])
 
 # Launch the app with share=True for Colab
 demo.launch(share=True)
