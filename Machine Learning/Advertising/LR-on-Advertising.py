@@ -1,3 +1,84 @@
+# Install required libraries
+!pip install gradio pandas matplotlib seaborn
+
+# Import necessary libraries
+import gradio as gr
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Dummy DataFrame for dataset preview (replace with your actual data)
+data = {
+    "TV Advertising Budget ($)": [100, 150, 200, 250, 300],
+    "Sales (units)": [20, 25, 30, 35, 40]
+}
+advert = pd.DataFrame(data)
+
+# Save the image locally
+import requests
+image_url = "https://raw.githubusercontent.com/DRALVINANG/Gradio/main/Machine%20Learning/Advertising/pexels-fotios-photos-1444416.jpg"
+image_path = "tv_advertising.jpg"
+with open(image_path, "wb") as f:
+    f.write(requests.get(image_url).content)
+
+# Function to generate visualizations
+def generate_visualizations():
+    # Pair Plot
+    plt.figure(figsize=(5, 5))
+    sns.scatterplot(data=advert, x="TV Advertising Budget ($)", y="Sales (units)")
+    plt.title("Scatter Plot of TV Advertising vs Sales")
+    plt.savefig("pair_plot.png")
+    plt.close()
+
+    # Correlation Heatmap
+    plt.figure(figsize=(5, 5))
+    sns.heatmap(advert.corr(), annot=True, cmap="coolwarm", fmt=".2f")
+    plt.title("Correlation Heatmap")
+    plt.savefig("heatmap.png")
+    plt.close()
+
+    return "pair_plot.png", "heatmap.png"
+
+# Function to predict and visualize results with feedback
+def predict_and_visualize_with_feedback(tv_budget):
+    # Dummy linear regression prediction logic
+    predicted_sales = tv_budget * 0.2  # Dummy prediction formula
+    r2_value = 0.95  # Dummy R² value
+    mse_value = 5.0  # Dummy MSE value
+
+    # Feedback for R²
+    if r2_value > 0.9:
+        r2_feedback = "Excellent Fit"
+    elif 0.7 <= r2_value <= 0.9:
+        r2_feedback = "Acceptable Fit"
+    else:
+        r2_feedback = "Poor Fit"
+
+    # Feedback for MSE
+    if mse_value <= 10:
+        mse_feedback = "Good Fit"
+    elif mse_value > 100:
+        mse_feedback = "Poor Fit"
+    else:
+        mse_feedback = "Moderate Fit"
+
+    # Regression plot
+    plt.figure(figsize=(5, 5))
+    sns.scatterplot(data=advert, x="TV Advertising Budget ($)", y="Sales (units)")
+    plt.plot([0, 500], [0, 500 * 0.2], color="red", label="Regression Line")
+    plt.title("Regression Plot")
+    plt.legend()
+    plt.savefig("regression_plot.png")
+    plt.close()
+
+    # Return values and feedback
+    return (
+        predicted_sales,
+        f"{r2_value:.2f} ({r2_feedback})",
+        f"{mse_value:.2f} ({mse_feedback})",
+        "regression_plot.png"
+    )
+
 #--------------------------------------------------------------------
 # Gradio Interface
 #--------------------------------------------------------------------
@@ -10,8 +91,20 @@ with gr.Blocks() as demo:
     **Created by:** Dr. Alvin Ang
     """)
 
-    # Add the uploaded image below the title
-    gr.Image(value="/mnt/data/1.png", label="TV Advertising")
+    # Add a button to load the image
+    gr.Markdown("### Click the button below to load the image:")
+    load_image_button = gr.Button("Load Image")
+    tv_ad_image_output = gr.Image(label="TV Advertising")
+
+    # Load image function
+    def load_image():
+        return image_path
+
+    load_image_button.click(
+        load_image,
+        inputs=[],
+        outputs=[tv_ad_image_output]
+    )
 
     gr.Markdown("<hr>")  # Add a horizontal line after the title and description
 
@@ -53,8 +146,8 @@ with gr.Blocks() as demo:
     heatmap_output = gr.Image(label="Correlation Heatmap")
     generate_visualizations_button = gr.Button("Generate Visualizations")
     generate_visualizations_button.click(
-        generate_visualizations, 
-        inputs=[], 
+        generate_visualizations,
+        inputs=[],
         outputs=[pair_plot_output, heatmap_output]
     )
     gr.Markdown("<hr>")  # Add a horizontal line after visualizations
@@ -86,14 +179,18 @@ with gr.Blocks() as demo:
     gr.Markdown("### Predicted Results and Model Performance:")
     with gr.Row():
         predicted_sales_output = gr.Textbox(label="Predicted Sales (units)", interactive=False)
-        r2_output = gr.Textbox(label="R-squared Value", interactive=False)
-        mse_output = gr.Textbox(label="Mean Squared Error (MSE)", interactive=False)
+        r2_output = gr.Textbox(label="R-squared Value and Feedback", interactive=False)
+        mse_output = gr.Textbox(label="Mean Squared Error (MSE) and Feedback", interactive=False)
 
     plot_output = gr.Image(label="Regression Plot")
 
     # Button to make predictions and visualize results
     predict_button = gr.Button("Predict and Visualize")
-    predict_button.click(predict_and_visualize, inputs=tv_budget_input, outputs=[predicted_sales_output, r2_output, mse_output, plot_output])
+    predict_button.click(
+        predict_and_visualize_with_feedback,
+        inputs=tv_budget_input,
+        outputs=[predicted_sales_output, r2_output, mse_output, plot_output]
+    )
     gr.Markdown("<hr>")  # Add a horizontal line after predictions and performance section
 
 # Launch the app with share=True for Colab
