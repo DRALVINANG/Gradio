@@ -1,20 +1,20 @@
-# Install necessary libraries
-!pip install gradio seaborn matplotlib scikit-learn pandas
+# Install required libraries
+!pip install gradio pandas matplotlib seaborn scikit-learn
 
 # Import necessary libraries
 import gradio as gr
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_squared_error
-from mpl_toolkits.mplot3d import Axes3D
+import requests
 
 #--------------------------------------------------------------------
 # Step 1: Load Dataset
 #--------------------------------------------------------------------
-# Load the Advertising dataset from the provided URL
+# Load the Advertising dataset
 url = 'https://www.alvinang.sg/s/Advertising.csv'
 advert = pd.read_csv(url)
 
@@ -29,10 +29,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 model = LinearRegression()
 model.fit(X_train, y_train)
 
-# Get the model parameters (intercept and coefficients)
-intercept = model.intercept_
-coefficients = list(zip(X.columns, model.coef_))
-
 # Predict values for the test set
 sales_pred_test = model.predict(X_test)
 
@@ -40,10 +36,20 @@ sales_pred_test = model.predict(X_test)
 r2 = r2_score(y_test, sales_pred_test)
 mse = mean_squared_error(y_test, sales_pred_test)
 
+# Save the image locally
+image_url = "https://raw.githubusercontent.com/DRALVINANG/Gradio/main/Machine%20Learning/Advertising/pexels-jvdm-1457842.jpg"
+image_path = "advertising_image.jpg"
+with open(image_path, "wb") as f:
+    f.write(requests.get(image_url).content)
+
 #--------------------------------------------------------------------
 # Gradio App Functions
 #--------------------------------------------------------------------
-# Function to generate and save pair plot and correlation heatmap
+# Function to display the image
+def load_image():
+    return image_path
+
+# Function to generate visualizations
 def generate_visualizations():
     # Generate pair plot
     sns.pairplot(advert)
@@ -61,67 +67,67 @@ def generate_visualizations():
 
     return pair_plot_path, heatmap_path
 
-# Function to make predictions and visualize results
+# Function to predict and visualize results
 def predict_and_visualize(tv_budget, radio_budget, newspaper_budget):
     # Predict sales for the input budgets
     predicted_sales = model.predict([[tv_budget, radio_budget, newspaper_budget]])[0]
 
-    # Create a residual plot
-    plt.figure(figsize=(12, 6))
-    sns.residplot(x=y_test, y=sales_pred_test, lowess=True, color="g")
-    plt.xlabel('Actual Sales')
-    plt.ylabel('Residuals')
-    plt.title('Residual Plot: Actual Sales vs Predicted Sales')
-    residual_plot_path = "residual_plot.png"
-    plt.savefig(residual_plot_path)
-    plt.close()
+    # R² and MSE feedback
+    r2_feedback = "Excellent Fit" if r2 > 0.9 else "Acceptable Fit" if r2 > 0.7 else "Poor Fit"
+    mse_feedback = "Good Fit" if mse <= 10 else "Poor Fit"
 
-    # Create a 3D scatter plot for TV, Radio, and Sales
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(advert['TV'], advert['Radio'], advert['Sales'], color='b')
-    ax.set_xlabel('TV Advertising Costs ($)')
-    ax.set_ylabel('Radio Advertising Costs ($)')
-    ax.set_zlabel('Sales (units)')
-    plt.title('3D Plot of TV, Radio Advertising vs Sales')
-    scatter_plot_path = "scatter_plot_3d.png"
-    plt.savefig(scatter_plot_path)
-    plt.close()
-
-    # Explain model performance
-    mse_comment = "Good Fit" if mse <= 10 else "Poor Fit"
-    r2_comment = "Excellent Fit" if r2 > 0.9 else "Acceptable Fit" if r2 > 0.7 else "Poor Fit"
-
-    return predicted_sales, f"{r2:.2f} ({r2_comment})", f"{mse:.2f} ({mse_comment})", residual_plot_path, scatter_plot_path
+    return predicted_sales, f"{r2:.2f} ({r2_feedback})", f"{mse:.2f} ({mse_feedback})"
 
 #--------------------------------------------------------------------
 # Gradio Interface
 #--------------------------------------------------------------------
 # Create a Gradio app interface
 with gr.Blocks() as demo:
+    # Main Title
     gr.Markdown("# Advertising Campaigns vs Sales - Multiple Linear Regression")
     gr.Markdown("""
-    ## About the Dataset:
-    The **Advertising dataset** consists of sales data for a product across 200 different markets. It includes advertising budgets allocated to three types of media:
-    - **TV**: Advertising budget for TV (in $).
-    - **Radio**: Advertising budget for Radio (in $).
-    - **Newspaper**: Advertising budget for Newspapers (in $).
-
-    The target variable, **Sales**, represents the sales of the product in units for each market.
-
-    **Dataset Summary**:
-    - **200 rows** (markets) and **4 variables**:
-        - TV: Advertising budget for TV (numeric).
-        - Radio: Advertising budget for Radio (numeric).
-        - Newspaper: Advertising budget for Newspapers (numeric).
-        - Sales: Product sales (numeric, target variable).
+    **Objective:** This app demonstrates how advertising budgets for TV, Radio, and Newspapers influence sales. It uses a Multiple Linear Regression model to predict sales and provides insights through visualizations.
     """)
 
+    # Add a button to display the image
+    gr.Markdown("### Click below to display an example advertising image:")
+    load_image_button = gr.Button("Show Image")
+    advertising_image_output = gr.Image(label="Example Advertising Image")
+    load_image_button.click(load_image, inputs=[], outputs=[advertising_image_output])
+
+    gr.Markdown("<hr>")  # Horizontal line after the image
+
+    gr.Markdown("## About the Dataset:")
     gr.Markdown("""
-    ## Visualize Relationships:
+    This dataset provides data on advertising budgets for TV, Radio, and Newspapers, along with the resulting sales. The goal is to analyze and predict how different budget allocations impact sales.
+
+    - **Features:**
+        - TV: Budget for TV advertising (in $).
+        - Radio: Budget for radio advertising (in $).
+        - Newspaper: Budget for newspaper advertising (in $).
+    - **Target:**
+        - Sales: Product sales in units.
+    """)
+    
+    # Add a dataset preview
+    gr.Markdown("### Dataset Preview:")
+    dataset_preview = gr.Dataframe(value=advert.head(), label="First Few Rows of Dataset")
+
+    # Add a download button for the dataset
+    def download_csv():
+        return url  # Provide the CSV download link
+
+    download_button = gr.Button("Download Dataset")
+    dataset_download_output = gr.File(label="Download CSV")
+    download_button.click(download_csv, inputs=[], outputs=dataset_download_output)
+
+    gr.Markdown("<hr>")  # Horizontal line after the dataset preview and download button
+
+    gr.Markdown("## Visualize Relationships:")
+    gr.Markdown("""
     Below are visualizations to better understand the dataset:
-    - Pair Plot: Shows relationships between all variables.
-    - Correlation Heatmap: Shows correlation coefficients between variables.
+    - **Pair Plot**: Shows relationships between all variables.
+    - **Correlation Heatmap**: Displays correlation coefficients between variables.
     """)
     
     pair_plot_output = gr.Image(label="Pair Plot")
@@ -133,35 +139,36 @@ with gr.Blocks() as demo:
         outputs=[pair_plot_output, heatmap_output]
     )
 
+    gr.Markdown("<hr>")  # Horizontal line after visualizations
+
+    gr.Markdown("## Make Predictions:")
     gr.Markdown("""
-    ## How to Use This App:
-    1. Adjust the **advertising budgets** (TV, Radio, Newspaper) using the sliders below.
-    2. The app will predict the **sales** and display performance metrics:
-        - **R² Score (R-squared):** Measures how well the model fits the data. Higher values (closer to 1) indicate a better fit.
-        - **Mean Squared Error (MSE):** Measures the average squared difference between actual and predicted values. Lower values (close to 0) indicate a better fit.
+    Adjust the advertising budgets using the sliders below, and the app will predict the sales and display performance metrics:
+    - **R² Score (R-squared):** Measures how well the model fits the data. Higher values indicate a better fit.
+    - **Mean Squared Error (MSE):** Measures the average squared difference between actual and predicted values. Lower values indicate a better fit.
     """)
 
+    # Input sliders for budgets
     with gr.Row():
         tv_budget_input = gr.Slider(label="TV Advertising Budget ($)", minimum=0, maximum=500, step=10, value=100)
         radio_budget_input = gr.Slider(label="Radio Advertising Budget ($)", minimum=0, maximum=500, step=10, value=50)
         newspaper_budget_input = gr.Slider(label="Newspaper Advertising Budget ($)", minimum=0, maximum=500, step=10, value=20)
     
+    # Outputs for predictions and metrics
     with gr.Row():
         predicted_sales_output = gr.Textbox(label="Predicted Sales (units)", interactive=False)
         r2_output = gr.Textbox(label="R-squared Value", interactive=False)
         mse_output = gr.Textbox(label="Mean Squared Error (MSE)", interactive=False)
-    
-    with gr.Row():
-        residual_plot_output = gr.Image(label="Residual Plot")
-        scatter_plot_output = gr.Image(label="3D Scatter Plot")
 
-    # Button to make predictions and visualize results
+    # Button to make predictions
     predict_button = gr.Button("Predict and Visualize")
     predict_button.click(
-        predict_and_visualize, 
+        predict_and_visualize,
         inputs=[tv_budget_input, radio_budget_input, newspaper_budget_input],
-        outputs=[predicted_sales_output, r2_output, mse_output, residual_plot_output, scatter_plot_output]
+        outputs=[predicted_sales_output, r2_output, mse_output]
     )
 
-# Launch the app with share=True for Colab
+    gr.Markdown("<hr>")  # Horizontal line after predictions
+
+# Launch the app with share=True
 demo.launch(share=True)
