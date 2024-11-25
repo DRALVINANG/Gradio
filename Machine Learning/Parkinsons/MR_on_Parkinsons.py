@@ -18,6 +18,10 @@ import requests
 dataset_path = "https://raw.githubusercontent.com/DRALVINANG/Machine-Learning-with-Python-Training/refs/heads/main/Multiple%20Regression/Parkinsons.csv"
 data = pd.read_csv(dataset_path)
 
+# Save dataset locally for download
+dataset_local_path = "parkinsons_dataset.csv"
+data.to_csv(dataset_local_path, index=False)
+
 # Process dataset
 data = data.dropna()  # Drop missing values
 data = data.drop(columns=['subject#'])  # Remove subject ID column
@@ -41,8 +45,9 @@ mse = mean_squared_error(y_test, y_pred)
 # Save the image locally
 image_url = "https://github.com/DRALVINANG/Gradio/blob/main/Machine-Learning/Parkinsons/pexels-chokniti-khongchum-1197604-3938022.jpg?raw=true"
 image_path = "parkinsons_disease.jpg"
+response = requests.get(image_url)
 with open(image_path, "wb") as f:
-    f.write(requests.get(image_url).content)
+    f.write(response.content)
 
 #--------------------------------------------------------------------
 # Gradio App Functions
@@ -115,17 +120,15 @@ with gr.Blocks() as demo:
     # About the Dataset
     gr.Markdown("## About the Dataset:")
     gr.Markdown("""
-    The **Parkinson’s Telemonitoring Dataset** from the UCI Machine Learning Repository provides data for monitoring the progression of Parkinson’s disease based on various biomedical voice measurements. This dataset is often used for regression tasks, where the goal is to predict the severity of the disease based on voice measurement features.
+    The **Parkinson’s Telemonitoring Dataset** from the UCI Machine Learning Repository provides data for monitoring the progression of Parkinson’s disease based on various biomedical voice measurements.
     
     **Features:**
     - **Jitter(%):** Variation in frequency measured as a percentage.
-    - **Jitter(Abs):** Absolute variation in frequency.
     - **Shimmer:** Variation in amplitude, showing amplitude differences.
-    - **Shimmer(dB):** Shimmer in decibels (dB), a logarithmic measure of amplitude variability.
     - **NHR (Noise-to-Harmonics Ratio):** Ratio indicating the noise level relative to harmonic energy.
     - **HNR (Harmonics-to-Noise Ratio):** A measure of vocal clarity.
     - **RPDE (Recurrence Period Density Entropy):** Nonlinear dynamic feature measuring vocal signal unpredictability.
-    - **DFA (Detrended Fluctuation Analysis):** A measure of signal self-similarity, capturing fractal-like properties.
+    - **DFA (Detrended Fluctuation Analysis):** A measure of signal self-similarity.
     - **PPE (Pitch Period Entropy):** Entropy of pitch periods, representing vocal variability.
 
     **Target Variables:**
@@ -136,7 +139,7 @@ with gr.Blocks() as demo:
     # Dataset Preview
     gr.Markdown("### Dataset Preview:")
     dataset_preview_table = gr.Dataframe(value=data.head(), label="Dataset Preview")
-    gr.Markdown("[Download the Dataset](https://raw.githubusercontent.com/DRALVINANG/Machine-Learning-with-Python-Training/refs/heads/main/Multiple%20Regression/Parkinsons.csv)")
+    download_button = gr.File(label="Download Parkinson's Dataset", value=dataset_local_path)
 
     gr.Markdown("<hr>")  # Add a horizontal line
 
