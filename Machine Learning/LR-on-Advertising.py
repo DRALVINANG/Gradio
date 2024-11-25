@@ -98,7 +98,6 @@ def predict_and_visualize(tv_budget):
 #--------------------------------------------------------------------
 # Gradio Interface
 #--------------------------------------------------------------------
-# Create a Gradio app interface
 with gr.Blocks() as demo:
     gr.Markdown("# TV Advertising vs Sales - Linear Regression")
     gr.Markdown("""
@@ -113,6 +112,9 @@ with gr.Blocks() as demo:
         - TV: Advertising budget for TV (numeric, feature).
         - Sales: Product sales (numeric, target variable).
     """)
+
+    gr.Markdown("### Dataset Preview:")
+    dataset_preview = gr.Dataframe(label="Dataset Preview", value=advert.head())
 
     gr.Markdown("""
     ## Visualize Relationships:
