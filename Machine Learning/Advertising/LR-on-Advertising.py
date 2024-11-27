@@ -14,13 +14,6 @@ data = {
 }
 advert = pd.DataFrame(data)
 
-# Save the image locally
-import requests
-image_url = "https://raw.githubusercontent.com/DRALVINANG/Gradio/main/Machine%20Learning/Advertising/pexels-fotios-photos-1444416.jpg"
-image_path = "tv_advertising.jpg"
-with open(image_path, "wb") as f:
-    f.write(requests.get(image_url).content)
-
 # Function to generate visualizations
 def generate_visualizations():
     # Pair Plot
@@ -91,21 +84,6 @@ with gr.Blocks() as demo:
     **Created by:** Dr. Alvin Ang
     """)
 
-    # Add a button to load the image
-    gr.Markdown("### Click the button below to load the image:")
-    load_image_button = gr.Button("Load Image")
-    tv_ad_image_output = gr.Image(label="TV Advertising")
-
-    # Load image function
-    def load_image():
-        return image_path
-
-    load_image_button.click(
-        load_image,
-        inputs=[],
-        outputs=[tv_ad_image_output]
-    )
-
     gr.Markdown("<hr>")  # Add a horizontal line after the title and description
 
     # About the Dataset Section
@@ -115,13 +93,7 @@ with gr.Blocks() as demo:
 
     - **TV Advertising Budget (TV)**: Advertising budget spent on TV (in $).
     - **Sales**: The number of units sold in each market (target variable).
-
-    **Dataset Summary**:
-    - **200 rows** (markets) and **2 variables**:
-        - TV: Advertising budget for TV (numeric, feature).
-        - Sales: Product sales (numeric, target variable).
     """)
-    gr.Markdown("<hr>")  # Add a horizontal line after the dataset description
 
     # Dataset Preview Section
     gr.Markdown("### Dataset Preview:")
@@ -131,6 +103,7 @@ with gr.Blocks() as demo:
     gr.Markdown("""
     [Download the Dataset](https://www.alvinang.sg/s/Advertising.csv)
     """)
+
     gr.Markdown("<hr>")  # Add a horizontal line after the dataset preview and download link
 
     # Visualization Section
@@ -150,6 +123,7 @@ with gr.Blocks() as demo:
         inputs=[],
         outputs=[pair_plot_output, heatmap_output]
     )
+
     gr.Markdown("<hr>")  # Add a horizontal line after visualizations
 
     # Instructions Section
@@ -169,7 +143,8 @@ with gr.Blocks() as demo:
         - ≤ 10: Good Fit
         - > 100: Poor Fit
     """)
-    gr.Markdown("<hr>")  # Add a horizontal line after the instructions
+
+    gr.Markdown("<hr>")  # Add a horizontal line after instructions
 
     # Input and Outputs Section for Prediction
     gr.Markdown("### Make Predictions:")
@@ -191,6 +166,7 @@ with gr.Blocks() as demo:
         inputs=tv_budget_input,
         outputs=[predicted_sales_output, r2_output, mse_output, plot_output]
     )
+
     gr.Markdown("<hr>")  # Add a horizontal line after predictions and performance section
 
 # Launch the app with share=True for Colab
