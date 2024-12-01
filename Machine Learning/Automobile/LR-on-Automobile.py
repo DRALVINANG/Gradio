@@ -82,7 +82,16 @@ def predict_price(highway_mpg):
 # Gradio Interface
 #--------------------------------------------------------------------
 with gr.Blocks() as demo:
+    # Title and Objective
     gr.Markdown("# Automobile Price Prediction Based on Highway-MPG")
+    gr.Markdown("""
+    **Objective:** This app demonstrates how to use **Linear Regression** to predict the price of a car based on its **highway-mpg** (fuel efficiency on highways). It includes visualizations and performance metrics to understand the model's behavior.
+
+    **Created by:** Dr. Alvin Ang
+    """)
+    gr.Markdown("<hr>")  # Add a horizontal line after the title and objective
+
+    # About the Dataset Section
     gr.Markdown("""
     ## About the Dataset:
     The **Automobile Dataset** provides data for predicting the price of different types of cars based on their various attributes. 
@@ -95,7 +104,19 @@ with gr.Blocks() as demo:
     - **Rows**: 205 (cars)
     - **Columns**: 2 (highway-mpg, price)
     """)
+    gr.Markdown("<hr>")  # Add a horizontal line after the "About the Dataset" section
 
+    # Dataset Preview Section
+    gr.Markdown("## Dataset Preview:")
+    dataset_preview = gr.Dataframe(value=df.head(), interactive=False)
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Dataset Preview" section
+
+    # Download Dataset Button
+    gr.Markdown("### Download the Dataset:")
+    gr.Markdown("[Click here to download the dataset](https://www.alvinang.sg/s/automobileEDA.csv)")
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Download the Dataset" section
+
+    # Visualize Relationships
     gr.Markdown("""
     ## Visualize Relationships:
     Below are visualizations to better understand the dataset:
@@ -112,6 +133,9 @@ with gr.Blocks() as demo:
         outputs=[pair_plot_output, heatmap_output]
     )
 
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Visualize Relationships" section
+
+    # How to Use This App
     gr.Markdown("""
     ## How to Use This App:
     1. Adjust the **highway-mpg** slider below to predict the car price.
@@ -129,6 +153,7 @@ with gr.Blocks() as demo:
         - ≤ 10: Good Fit
         - > 100: Poor Fit
     """)
+    gr.Markdown("<hr>")  # Add a horizontal line after the "How to Use This App" section
 
     with gr.Row():
         highway_mpg_input = gr.Slider(label="Highway-MPG", minimum=int(X.min()), maximum=int(X.max()), step=1, value=30)
@@ -146,6 +171,8 @@ with gr.Blocks() as demo:
         inputs=[highway_mpg_input],
         outputs=[predicted_price_output, r2_output, mse_output, plot_output]
     )
+
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Prediction and Results" section
 
 # Launch the app with share=True for Colab
 demo.launch(share=True)
