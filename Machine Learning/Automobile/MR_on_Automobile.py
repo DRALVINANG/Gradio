@@ -93,7 +93,13 @@ def predict_and_visualize(horsepower, curb_weight, engine_size, highway_mpg):
 #--------------------------------------------------------------------
 with gr.Blocks() as demo:
     gr.Markdown("# Automobile Price Prediction - Linear Regression")
-    
+    gr.Markdown("""
+    **Objective:** This app uses **Linear Regression** to predict the price of a car based on its attributes. 
+    The model is trained using features like **horsepower**, **curb weight**, **engine size**, and **highway-mpg**. 
+    By adjusting these values, users can predict the price of an automobile and visualize how the model performs.
+    """)
+    gr.Markdown("<hr>")  # Add a horizontal line after the title and description
+
     gr.Markdown("""
     ## Dataset Overview
     The **Automobile Dataset** includes features that influence the price of a car. This app predicts the price based on selected features:
@@ -101,13 +107,26 @@ with gr.Blocks() as demo:
     - **Curb Weight**: Weight of the car without passengers or cargo (in pounds).
     - **Engine Size**: Displacement of the engine (in cubic centimeters).
     - **Highway MPG**: Fuel efficiency on highways (miles per gallon).
+    """)
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Dataset Overview" section
 
+    # Dataset Preview Section
+    gr.Markdown("## Dataset Preview:")
+    dataset_preview = gr.Dataframe(value=df.head(), interactive=False)
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Dataset Preview" section
+
+    # Download Dataset Button
+    gr.Markdown("### Download the Dataset:")
+    gr.Markdown("[Click here to download the dataset](https://www.alvinang.sg/s/automobileEDA.csv)")
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Download Dataset" section
+
+    # Visualize Relationships
+    gr.Markdown("""
     ## Visualize Relationships
     Below are visualizations to better understand the dataset:
-    - Pair Plot: Shows relationships between all variables.
-    - Correlation Heatmap: Shows correlation coefficients between variables.
+    - **Pair Plot**: Shows relationships between all variables.
+    - **Correlation Heatmap**: Shows correlation coefficients between variables.
     """)
-
     pair_plot_output = gr.Image(label="Pair Plot")
     heatmap_output = gr.Image(label="Correlation Heatmap")
     generate_visualizations_button = gr.Button("Generate Visualizations")
@@ -116,12 +135,13 @@ with gr.Blocks() as demo:
         inputs=[], 
         outputs=[pair_plot_output, heatmap_output]
     )
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Visualize Relationships" section
 
+    # Predict Automobile Prices
     gr.Markdown("""
     ## Predict Automobile Prices
     Adjust the feature values below and predict the price of the automobile:
     """)
-
     with gr.Row():
         horsepower_input = gr.Slider(label="Horsepower", minimum=50, maximum=300, step=10, value=150)
         curb_weight_input = gr.Slider(label="Curb Weight (lbs)", minimum=1500, maximum=4000, step=100, value=2500)
@@ -143,6 +163,8 @@ with gr.Blocks() as demo:
         inputs=[horsepower_input, curb_weight_input, engine_size_input, highway_mpg_input],
         outputs=[predicted_price_output, r2_output, mse_output, actual_vs_predicted_output, residual_plot_output]
     )
+
+    gr.Markdown("<hr>")  # Add a horizontal line after the "Prediction and Results" section
 
 # Launch the app
 demo.launch(share=True)
