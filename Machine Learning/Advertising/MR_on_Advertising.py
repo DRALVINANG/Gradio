@@ -1,3 +1,6 @@
+# Install necessary libraries
+!pip install gradio pandas matplotlib seaborn scikit-learn
+
 import gradio as gr
 import pandas as pd
 import matplotlib.pyplot as plt
