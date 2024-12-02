@@ -42,20 +42,9 @@ y_pred = model.predict(X_test)
 r2 = r2_score(y_test, y_pred)
 mse = mean_squared_error(y_test, y_pred)
 
-# Save the image locally
-image_url = "https://github.com/DRALVINANG/Gradio/blob/main/Machine-Learning/Parkinsons/pexels-chokniti-khongchum-1197604-3938022.jpg?raw=true"
-image_path = "parkinsons_disease.jpg"
-response = requests.get(image_url)
-with open(image_path, "wb") as f:
-    f.write(response.content)
-
 #--------------------------------------------------------------------
 # Gradio App Functions
 #--------------------------------------------------------------------
-# Function to display the image
-def load_image():
-    return image_path
-
 # Function to generate visualizations
 def generate_visualizations():
     # Pair Plot
@@ -103,22 +92,14 @@ def predict_and_visualize(jitter, shimmer, nhr, hnr, rpde, dfa, ppe):
 #--------------------------------------------------------------------
 with gr.Blocks() as demo:
     # Main Title
-    gr.Markdown("# Parkinson's Disease Prediction Using Linear Regression")
+    gr.Markdown("# Parkinson's Disease Prediction Using Linear Regression", elem_id="main_title")
     gr.Markdown("""
     This app predicts the progression severity of Parkinson's disease using linear regression models. It provides interactive visualizations, predictions, and model performance metrics to help users understand the data and model behavior.
     """)
-    gr.Markdown("<hr>")  # Add a horizontal line
+    gr.Markdown("<hr>", elem_id="main_hr")
 
-    # Add a button to load an image
-    gr.Markdown("### Click the button below to load an image related to Parkinson's Disease:")
-    load_image_button = gr.Button("Load Image")
-    disease_image_output = gr.Image(label="Parkinson's Disease")
-    load_image_button.click(load_image, inputs=[], outputs=disease_image_output)
-
-    gr.Markdown("<hr>")  # Add a horizontal line
-
-    # About the Dataset
-    gr.Markdown("## About the Dataset:")
+    # Section: About the Dataset
+    gr.Markdown("<h2 style='font-size: 24px; color: #1e3d58;'>## About the Dataset:</h2>", elem_id="about_section")
     gr.Markdown("""
     The **Parkinson’s Telemonitoring Dataset** from the UCI Machine Learning Repository provides data for monitoring the progression of Parkinson’s disease based on various biomedical voice measurements.
     
@@ -136,15 +117,17 @@ with gr.Blocks() as demo:
     - **Total UPDRS:** Overall severity of Parkinson’s disease, including motor and non-motor symptoms.
     """)
 
+    gr.Markdown("<hr>", elem_id="dataset_hr")
+
     # Dataset Preview
-    gr.Markdown("### Dataset Preview:")
+    gr.Markdown("<h3 style='font-size: 20px; color: #2e5c6e;'>### Dataset Preview:</h3>", elem_id="dataset_preview_section")
     dataset_preview_table = gr.Dataframe(value=data.head(), label="Dataset Preview")
     download_button = gr.File(label="Download Parkinson's Dataset", value=dataset_local_path)
 
-    gr.Markdown("<hr>")  # Add a horizontal line
+    gr.Markdown("<hr>", elem_id="dataset_preview_hr")
 
-    # Visualization Section
-    gr.Markdown("## Visualize Relationships:")
+    # Section: Visualize Relationships
+    gr.Markdown("<h2 style='font-size: 24px; color: #1e3d58;'>## Visualize Relationships:</h2>", elem_id="visualizations_section")
     pair_plot_output = gr.Image(label="Pair Plot")
     heatmap_output = gr.Image(label="Correlation Heatmap")
     generate_visualizations_button = gr.Button("Generate Visualizations")
@@ -153,10 +136,11 @@ with gr.Blocks() as demo:
         inputs=[],
         outputs=[pair_plot_output, heatmap_output]
     )
-    gr.Markdown("<hr>")  # Add a horizontal line
 
-    # Prediction Section
-    gr.Markdown("### Predict Total UPDRS:")
+    gr.Markdown("<hr>", elem_id="visualizations_hr")
+
+    # Section: Prediction
+    gr.Markdown("<h2 style='font-size: 28px; color: #1e3d58;'>### Predict Total UPDRS:</h2>", elem_id="prediction_section")
     sliders = [
         gr.Slider(0, 1, step=0.01, label="Jitter (%)", value=0.01),
         gr.Slider(0, 1, step=0.01, label="Shimmer", value=0.05),
@@ -177,7 +161,7 @@ with gr.Blocks() as demo:
         outputs=[predicted_updrs, r2_output, mse_output, residual_plot_output]
     )
 
-    gr.Markdown("<hr>")  # Add a horizontal line after predictions
+    gr.Markdown("<hr>", elem_id="prediction_hr")
 
 # Launch the app with share=True
 demo.launch(share=True)
