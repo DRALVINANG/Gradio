@@ -36,9 +36,12 @@ def generate_visualizations():
     plt.savefig("pair_plot.png")
     plt.close()
 
+    # Filter numeric columns for the correlation heatmap
+    numeric_df = df.select_dtypes(include=[float, int])
+
     # Correlation Heatmap
     plt.figure(figsize=(10, 8))
-    sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f")
+    sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm", fmt=".2f")
     plt.title("Correlation Heatmap")
     plt.savefig("heatmap.png")
     plt.close()
@@ -77,7 +80,7 @@ def predict_and_visualize(horsepower, curb_weight, engine_size, highway_mpg):
     # Calculate evaluation metrics
     mse = mean_squared_error(y, y_pred)
     r2 = r2_score(y, y_pred)
-    
+
     mse_comment = "Good Fit" if mse <= 1e6 else "Poor Fit"
     r2_comment = "Excellent Fit" if r2 > 0.9 else "Acceptable Fit" if r2 > 0.7 else "Poor Fit"
 
@@ -88,10 +91,10 @@ def predict_and_visualize(horsepower, curb_weight, engine_size, highway_mpg):
 #--------------------------------------------------------------------
 with gr.Blocks() as demo:
     gr.Markdown("# Automobile Price Prediction - Linear Regression")
-    
+
     gr.Markdown("""
-        **Objective:** This app uses **Linear Regression** to predict the price of a car based on its attributes. 
-        The model is trained using features like **horsepower**, **curb weight**, **engine size**, and **highway-mpg**. 
+        **Objective:** This app uses **Linear Regression** to predict the price of a car based on its attributes.
+        The model is trained using features like **horsepower**, **curb weight**, **engine size**, and **highway-mpg**.
         By adjusting these values, users can predict the price of an automobile and visualize how the model performs.
         """)
 
@@ -99,16 +102,16 @@ with gr.Blocks() as demo:
 
     # Dataset Preview Section
     gr.Markdown("## Dataset Preview:")
-    
+
     dataset_preview = gr.Dataframe(value=df.head(), interactive=False)
-    
+
     gr.Markdown("<hr>")  # Add a horizontal line after the "Dataset Preview" section
 
     # Download Dataset Button
     gr.Markdown("### Download the Dataset:")
-    
+
     gr.Markdown("[Click here to download the dataset](https://www.alvinang.sg/s/automobileEDA.csv)")
-    
+
     gr.Markdown("<hr>")  # Add a horizontal line after the "Download Dataset" section
 
     # Visualize Relationships
@@ -116,15 +119,15 @@ with gr.Blocks() as demo:
 
     pair_plot_output = gr.Image(label="Pair Plot")
     heatmap_output = gr.Image(label="Correlation Heatmap")
-    
+
     generate_visualizations_button = gr.Button("Generate Visualizations")
-    
+
     generate_visualizations_button.click(
         generate_visualizations,
         inputs=[],
         outputs=[pair_plot_output, heatmap_output]
     )
-    
+
     gr.Markdown("<hr>")  # Add a horizontal line after the "Visualize Relationships" section
 
     # Predict Automobile Prices
@@ -146,7 +149,7 @@ with gr.Blocks() as demo:
         residual_plot_output = gr.Image(label="Residual Plot")
 
     predict_button = gr.Button("Predict and Visualize")
-    
+
     predict_button.click(
         predict_and_visualize,
         inputs=[horsepower_input, curb_weight_input, engine_size_input, highway_mpg_input],
